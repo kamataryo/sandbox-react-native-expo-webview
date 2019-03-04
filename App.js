@@ -32,7 +32,17 @@ export default class App extends React.Component {
   _handleAppStateChange = nextAppState =>
     this.setState({ isForeground: nextAppState === 'active' })
 
-  onNavigationStateChange = navigator => console.log(navigator)
+  onNavigationStateChange = navigator => {
+    // prevent navigate, for Android
+    // NOTE: screen flutterring
+    const { url } = navigator
+    if (
+      url !== 'about:blank' &&
+      url.indexOf('https://www.youtube.com/embed/v8y5qgWllT8') !== 0
+    ) {
+      this.WebView.goBack()
+    }
+  }
 
   render() {
     const { isForeground } = this.state
@@ -40,6 +50,7 @@ export default class App extends React.Component {
       <Wrap>
         {isForeground ? (
           <MyWebView
+            ref={c => (this.WebView = c)}
             source={{
               // uri:
               //   'https://www.youtube.com/embed/v8y5qgWllT8?rel=0&autoplay=0&showinfo=0&controls=0'
@@ -64,7 +75,7 @@ export default class App extends React.Component {
                         player = new YT.Player('player', {
                           height: '360',
                           width: '640',
-                          videoId: 'M7lc1UVf-VE',
+                          videoId: 'v8y5qgWllT8',
                           events: {
                             'onReady': onPlayerReady,
                             'onStateChange': onPlayerStateChange
@@ -98,10 +109,14 @@ export default class App extends React.Component {
             // startInLoadingState
             scalesPageToFit
             javaScriptEnabled
-            onShouldStartLoadWithRequest={({ url }) =>
-              url === 'about:blank' ||
-              url.indexOf('https://www.youtube.com/embed/') === 0
-            }
+            onShouldStartLoadWithRequest={({ url }) => {
+              // iOS Only
+              console.log(url)
+              return (
+                url === 'about:blank' ||
+                url.indexOf('https://www.youtube.com/embed/v8y5qgWllT8') === 0
+              )
+            }}
             style={{ flex: 1 }}
           />
         ) : null}
